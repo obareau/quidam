@@ -68,6 +68,17 @@ export interface GenerateResult {
   message?: string;
 }
 
+/** Rendu pur (aucun accès lore/disque) — réutilisé par generatePortrait
+ *  (écriture fichier) et par le rendu manuel à la demande (aperçu). */
+export function renderPortraitBuffer(params: PortraitParams, name: string, infoLine: string): Buffer {
+  ensureFonts();
+  const canvas = createCanvas(EXPORT_W, EXPORT_H);
+  const ctx = canvas.getContext("2d") as unknown as TextCtx;
+  drawPortrait(ctx, params);
+  drawCaption(ctx, PALETTES[params.palette], name, infoLine);
+  return canvas.toBuffer("image/png");
+}
+
 /**
  * Génère le portrait d'un personnage — ou saute s'il existe déjà et que
  * `force` n'est pas demandé (mode incrémental : ne régénère que les
@@ -81,17 +92,13 @@ export async function generatePortrait(
     return { slug, name, file, status: "skipped" };
   }
   try {
-    ensureFonts();
     const fiche = await fetchFiche(slug);
     const { classId, gender, typeText } = extractLore(fiche.body);
     const factionStyle = factionStyleFor(slug, graph);
     const params: PortraitParams = { seed: slug, classId, gender, factionStyle, palette: opts.palette };
-    const canvas = createCanvas(EXPORT_W, EXPORT_H);
-    const ctx = canvas.getContext("2d") as unknown as TextCtx;
-    drawPortrait(ctx, params);
-    drawCaption(ctx, PALETTES[opts.palette], name, captionInfoLine(classId, gender, factionStyle));
+    const buffer = renderPortraitBuffer(params, name, captionInfoLine(classId, gender, factionStyle));
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, canvas.toBuffer("image/png"));
+    fs.writeFileSync(file, buffer);
     return { slug, name, file, status: "generated", classId, gender, factionStyle, typeText };
   } catch (err) {
     return { slug, name, file, status: "error", message: (err as Error).message };
