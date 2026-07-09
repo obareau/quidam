@@ -8,6 +8,7 @@
   "scripts": {
     "build": "tsc --noEmit && tsx build.ts",
     "generate": "tsx src/cli/generate.ts",
+    "admin": "tsx src/server/admin.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
