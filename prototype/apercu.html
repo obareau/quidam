@@ -1,0 +1,616 @@
+<meta charset="UTF-8">
+<title>Quidam — Aperçu esthétique</title>
+<style>
+  :root {
+    --c0: #040804; --c1: #1e4a24; --c2: #5fae4e; --c3: #d8ff9a;
+    --c4: #0a1f0d; --c5: #37653a; --c6: #8ecb63; --c7: #f4ffd6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--c0);
+    color: var(--c3);
+    font-family: "DejaVu Sans Mono", "Consolas", monospace;
+    min-height: 100%;
+  }
+  body { padding: 24px 20px 40px; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 1px solid var(--c2);
+    padding-bottom: 10px;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  header .title { font-weight: bold; font-size: 15px; }
+  header .title span { color: var(--c2); font-weight: normal; }
+  .note {
+    max-width: 900px;
+    font-size: 11.5px;
+    color: var(--c6);
+    line-height: 1.6;
+    margin: 14px 0 26px;
+  }
+  .palettes { display: flex; gap: 6px; }
+  .palettes button {
+    background: var(--c0);
+    color: var(--c3);
+    border: 1px solid var(--c2);
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .palettes button:hover { background: var(--c4); }
+  .palettes button.active { background: var(--c1); font-weight: bold; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 22px;
+    max-width: 1180px;
+  }
+  .card {
+    border: 1px solid var(--c2);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    background: var(--c4);
+  }
+  .card .frame {
+    position: relative;
+    width: 192px;
+    height: 240px;
+  }
+  .card canvas {
+    image-rendering: pixelated;
+    width: 192px;
+    height: 240px;
+    display: block;
+  }
+  .card .frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px);
+  }
+  .card .label {
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .card .faction { font-weight: bold; font-size: 12.5px; }
+  .card .archetype { font-size: 10.5px; color: var(--c6); margin-top: 2px; }
+  .card .seed { font-size: 9.5px; color: var(--c5); margin-top: 4px; }
+
+  .section-title {
+    margin: 34px 0 6px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--c3);
+    border-top: 1px solid var(--c1);
+    padding-top: 20px;
+    max-width: 900px;
+  }
+  .card .meta { font-size: 9.5px; color: var(--c5); margin-top: 2px; }
+
+  footer {
+    max-width: 900px;
+    margin-top: 32px;
+    font-size: 11px;
+    color: var(--c5);
+    border-top: 1px solid var(--c1);
+    padding-top: 10px;
+    line-height: 1.6;
+  }
+</style>
+
+<header>
+  <div class="title">QUIDAM <span>// PROTOTYPE — SILHOUETTE + ACCESSOIRES</span></div>
+  <div class="palettes" id="palettes">
+    <button data-p="phosphore" class="active">PHOSPHORE</button>
+    <button data-p="sepia">SÉPIA</button>
+    <button data-p="blueprint">BLUEPRINT</button>
+  </div>
+</header>
+
+<p class="note">
+  Une seule silhouette de base (tête + épaules), rendue en pixel art procédural
+  (tons indexés, pas d'asset externe) — exactement la même technique que les
+  tuiles de Terra-Incognita. Les 6 cartes ci-dessous greffent des accessoires
+  différents sur cette même base, un jeu par faction canonique (le même
+  système que <code>ArchStyle</code> pour l'architecture). Palette identique
+  au pixel près à Terra-Incognita / Recta (phosphore/sépia/blueprint).
+  Rien de tout ceci n'est encore branché à un moteur de seed réel — c'est un
+  aller simple pour valider la direction avant d'écrire l'architecture.
+</p>
+
+<div class="grid" id="grid"></div>
+
+<h2 class="section-title">CLASSE + GENRE — 6 personnages réels (extraits Héphaïstos)</h2>
+<p class="note">
+  Nouvelle couche, orthogonale aux factions ci-dessus : la <b>classe</b> (espèce)
+  change la tête elle-même (Robōtarii anguleuse à visière unique, Hybride scindé
+  organique/mécanique, Synthétique instable/glitché, Humain à chevelure), le
+  <b>genre</b> ajoute une coiffe. Les deux sont ici extraits à la main du champ
+  <code>Type</code> et des pronoms des fiches Héphaïstos (<code>:5561</code>) —
+  l'Atlas seul ne suffit pas : son <code>subcat</code> n'est renseigné que sur
+  9 personnages/113, et ne code aucun genre. Dans Quidam, cette extraction sera
+  automatique (recherche du champ Type + comptage de pronoms).
+</p>
+
+<div class="grid" id="gridChars"></div>
+
+<footer>
+  Prototype jetable — <code>DEV/Quidam/prototype/apercu.html</code>, aucune dépendance,
+  aucun lien avec le code final. Une fois la direction validée : architecture
+  réelle (rng.ts / palettes.ts identiques à Terra-Incognita, système de
+  couches silhouette+accessoires paramétrable, ancrage Héphaïstos pour le texte
+  canon (Type, genre) + Atlas pour la faction/les relations, un PNG par fiche).
+</footer>
+
+<script>
+const PALETTES = {
+  phosphore: ["#040804","#1e4a24","#5fae4e","#d8ff9a","#0a1f0d","#37653a","#8ecb63","#f4ffd6"],
+  sepia:     ["#170e04","#5e4223","#c09154","#ffedc0","#2c1c0a","#7c5c33","#d9ab72","#fff6e0"],
+  blueprint: ["#040d1c","#1d4a7d","#6fa8d8","#f4faff","#0a2036","#3168a3","#94c3e8","#ffffff"],
+};
+// Index sémantiques dans le tableau à 8 tons.
+const BG = 0, DARK = 1, MID = 2, LIGHT = 3, BG2 = 4, DARK2 = 5, MID2 = 6, LIGHT2 = 7;
+// Les 3 palettes rangent leurs 8 tons du plus sombre au plus clair dans le
+// même ordre (0,4,1,5,2,6,3,7) — vérifié sur phosphore/sépia/blueprint.
+// Ce ramp permet un dégradé à 8 crans générique, quelle que soit la palette.
+const RAMP = [BG, BG2, DARK, DARK2, MID, MID2, LIGHT, LIGHT2];
+
+const GRID_W = 48, GRID_H = 60, PX = 4;
+
+function px(ctx, x, y, tone, colors) {
+  ctx.fillStyle = colors[tone];
+  ctx.fillRect(x * PX, y * PX, PX, PX);
+}
+function rectPx(ctx, x, y, w, h, tone, colors) {
+  ctx.fillStyle = colors[tone];
+  ctx.fillRect(x * PX, y * PX, w * PX, h * PX);
+}
+function pixels(ctx, list, tone, colors) {
+  for (const [x, y] of list) px(ctx, x, y, tone, colors);
+}
+/** Arrondit les 4 coins d'un rectangle déjà rempli par un escalier de pixels
+ *  (steps,steps-1,…,1) rongé jusqu'au fond — donne un ovale propre à haute
+ *  résolution au lieu d'un simple coin coupé. */
+function roundCorners(ctx, x, y, w, h, steps, bgTone, colors) {
+  for (let i = 0; i < steps; i++) {
+    const cut = steps - i;
+    rectPx(ctx, x, y + i, cut, 1, bgTone, colors);
+    rectPx(ctx, x + w - cut, y + i, cut, 1, bgTone, colors);
+    rectPx(ctx, x, y + h - 1 - i, cut, 1, bgTone, colors);
+    rectPx(ctx, x + w - cut, y + h - 1 - i, cut, 1, bgTone, colors);
+  }
+}
+
+// RNG déterministe par nom — mêmes primitives que rng.ts de Terra-Incognita,
+// pour que "semblable mais unique" reste seedé (2 Robōtarii ≠ mais stables).
+function seedRng(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function () {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+}
+function rInt(rng, min, max) { return min + Math.floor(rng() * (max - min + 1)); }
+function rChance(rng, p) { return rng() < p; }
+function rPick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+
+// Repères géométriques partagés (tête/yeux/cou/épaules) — les recettes
+// d'accessoires s'alignent dessus.
+const HEAD = { x: 15, y: 5, w: 18, h: 20 };
+const EYE_L = { x: 18, y: 16, w: 4, h: 3 };
+const EYE_R = { x: 26, y: 16, w: 4, h: 3 };
+const NECK = { x: 22, y: 25, w: 4, h: 4 };
+
+/** Visage HUMAIN (tête + ombrage + yeux) — réutilisé tel quel par-dessus une
+ *  capuche pour le "révéler" au centre du cadre. Dégradé sur 6 crans du
+ *  ramp (gauche sombre → droite claire) pour un galbe plus net. Variantes
+ *  seedées : largeur de frange, pommette marquée. */
+function drawFace(ctx, colors, seed = "humain") {
+  const rng = seedRng(seed + "::face");
+  const bands = [
+    [0, 2], [2, 3], [5, 3], [8, 5], [13, 3], [16, 2],
+  ]; // [x relatif à HEAD.x, largeur] — 6 tranches couvrant les 18px de tête
+  const ramp = [1, 2, 3, 4, 5, 6]; // crans du RAMP, du plus sombre au plus clair
+  bands.forEach(([dx, w], i) => {
+    rectPx(ctx, HEAD.x + dx, HEAD.y, w, HEAD.h, RAMP[ramp[i]], colors);
+  });
+  rectPx(ctx, HEAD.x + HEAD.w - 5, HEAD.y + 2, 3, 3, LIGHT2, colors); // reflet haut-droit
+  // Mouchetis de peau (texture organique, léger).
+  for (let i = 0; i < 10; i++) {
+    px(ctx, HEAD.x + rInt(rng, 1, HEAD.w - 2), HEAD.y + rInt(rng, 1, HEAD.h - 2), DARK2, colors);
+  }
+  roundCorners(ctx, HEAD.x, HEAD.y, HEAD.w, HEAD.h, 4, BG, colors);
+  // Sourcils.
+  rectPx(ctx, EYE_L.x - 1, EYE_L.y - 2, EYE_L.w + 1, 1, DARK, colors);
+  rectPx(ctx, EYE_R.x, EYE_R.y - 2, EYE_R.w + 1, 1, DARK, colors);
+  rectPx(ctx, EYE_L.x, EYE_L.y, EYE_L.w, EYE_L.h, BG, colors);
+  px(ctx, EYE_L.x + 1, EYE_L.y, LIGHT2, colors);
+  rectPx(ctx, EYE_R.x, EYE_R.y, EYE_R.w, EYE_R.h, BG, colors);
+  px(ctx, EYE_R.x + 2, EYE_R.y, LIGHT2, colors);
+  // Oreilles.
+  rectPx(ctx, HEAD.x - 1, EYE_L.y + 1, 1, 3, DARK, colors);
+  rectPx(ctx, HEAD.x + HEAD.w, EYE_R.y + 1, 1, 3, MID2, colors);
+  if (rChance(rng, 0.5)) { // pommette/tache, une fois sur deux
+    px(ctx, rPick(rng, [HEAD.x + 3, HEAD.x + HEAD.w - 4]), HEAD.y + 13, DARK2, colors);
+  }
+}
+
+/** ROBŌTARII : tête anguleuse (à peine biseautée), visière unique au lieu
+ *  de deux yeux, coutures de plaques, antenne — lisible comme "machine"
+ *  dès le silhouette, sans dépendre de la couleur. Variantes seedées :
+ *  antenne présente/absente, nombre et position des coutures, teinte des
+ *  plaques inversée un tirage sur deux. */
+function drawFaceRobotarii(ctx, colors, seed = "robotarii") {
+  const rng = seedRng(seed + "::face");
+  const flip = rChance(rng, 0.5);
+  rectPx(ctx, HEAD.x, HEAD.y, HEAD.w, HEAD.h, MID, colors);
+  rectPx(ctx, HEAD.x, HEAD.y, 5, HEAD.h, flip ? MID2 : DARK, colors);
+  rectPx(ctx, HEAD.x + HEAD.w - 5, HEAD.y, 5, HEAD.h, flip ? DARK : MID2, colors);
+  roundCorners(ctx, HEAD.x, HEAD.y, HEAD.w, HEAD.h, 1, BG, colors); // à peine biseauté
+  // Grille de ventilation sur la joue (texture mécanique).
+  const ventSide = rChance(rng, 0.5) ? HEAD.x + 2 : HEAD.x + HEAD.w - 4;
+  for (let i = 0; i < 3; i++) rectPx(ctx, ventSide, HEAD.y + 13 + i * 2, 2, 1, BG, colors);
+  // Boulons aux 4 coins de la plaque.
+  pixels(ctx, [
+    [HEAD.x + 2, HEAD.y + 2], [HEAD.x + HEAD.w - 3, HEAD.y + 2],
+    [HEAD.x + 2, HEAD.y + HEAD.h - 3], [HEAD.x + HEAD.w - 3, HEAD.y + HEAD.h - 3],
+  ], BG, colors);
+  if (rChance(rng, 0.65)) { // antenne
+    const antH = rInt(rng, 2, 4);
+    rectPx(ctx, HEAD.x + HEAD.w / 2 - 1, HEAD.y - antH, 2, antH, DARK, colors);
+    px(ctx, HEAD.x + HEAD.w / 2 - 1, HEAD.y - antH, LIGHT2, colors);
+  }
+  // Coutures de plaques — 1 ou 2, position décalée selon la seed.
+  const seamCount = rInt(rng, 1, 2);
+  const seamXs = seamCount === 1
+    ? [rPick(rng, [HEAD.x + 6, HEAD.x + HEAD.w - 7])]
+    : [HEAD.x + 6, HEAD.x + HEAD.w - 7];
+  for (const sx of seamXs) rectPx(ctx, sx, HEAD.y + 1, 1, HEAD.h - 2, BG, colors);
+  // Visière unique (remplace les deux yeux) — hauteur seedée + reflet de balayage.
+  const visorH = rInt(rng, 2, 3);
+  rectPx(ctx, EYE_L.x - 1, EYE_L.y - 1, EYE_R.x + EYE_R.w - EYE_L.x + 2, visorH + 2, BG, colors);
+  rectPx(ctx, EYE_L.x, EYE_L.y, EYE_R.x + EYE_R.w - EYE_L.x, visorH, LIGHT2, colors);
+  px(ctx, EYE_L.x + rInt(rng, 2, 8), EYE_L.y, MID2, colors);
+}
+
+/** HYBRIDE : moitié organique (dégradé humain) / moitié mécanique (plaque
+ *  + œil carré) — silhouette scindée, iconique du "entre-deux vivant".
+ *  Variante seedée : le côté mécanique peut être à gauche ou à droite,
+ *  nombre de coutures sur la plaque. */
+function drawFaceHybride(ctx, colors, seed = "hybride") {
+  const rng = seedRng(seed + "::face");
+  // Domaine "mech" séparé : le torse (drawTorsoDetail) doit retomber sur le
+  // même côté mécanique sans partager la suite de tirages du visage.
+  const mechLeft = rChance(seedRng(seed + "::mech"), 0.5);
+  const midX = HEAD.x + HEAD.w / 2;
+  const orgX = mechLeft ? midX : HEAD.x;
+  const mecX = mechLeft ? HEAD.x : midX;
+  const orgEye = mechLeft ? EYE_R : EYE_L;
+  const mecEye = mechLeft ? EYE_L : EYE_R;
+  // Moitié organique.
+  rectPx(ctx, orgX, HEAD.y, HEAD.w / 2, HEAD.h, MID, colors);
+  rectPx(ctx, orgX + (mechLeft ? HEAD.w / 2 - 5 : 0), HEAD.y, 5, HEAD.h, DARK, colors);
+  rectPx(ctx, orgEye.x, orgEye.y, orgEye.w, orgEye.h, BG, colors);
+  px(ctx, orgEye.x + 1, orgEye.y, LIGHT2, colors);
+  // Moitié mécanique.
+  rectPx(ctx, mecX, HEAD.y, HEAD.w / 2, HEAD.h, MID2, colors);
+  const seamCount = rInt(rng, 2, 3);
+  for (let i = 0; i < seamCount; i++) {
+    rectPx(ctx, mecX + 2 + i * 3, HEAD.y + 2, 1, HEAD.h - 4, BG, colors);
+  }
+  rectPx(ctx, mecEye.x - 1, mecEye.y - 1, mecEye.w + 2, mecEye.h + 2, BG, colors);
+  rectPx(ctx, mecEye.x, mecEye.y, mecEye.w - 1, mecEye.h - 1, LIGHT2, colors);
+  // Boulon sur la plaque + ligne de synchro lumineuse à la jonction des deux moitiés.
+  px(ctx, mecX + (mechLeft ? HEAD.w / 2 - 3 : 2), HEAD.y + HEAD.h - 4, BG, colors);
+  rectPx(ctx, midX - 1, HEAD.y + 3, 1, HEAD.h - 6, LIGHT2, colors);
+  // Coin arrondi seulement côté organique ; côté mécanique reste anguleux.
+  roundCorners(ctx, orgX - (mechLeft ? 0 : 0), HEAD.y, HEAD.w / 2 + 2, HEAD.h, 3, BG, colors);
+  const mecEdgeX = mechLeft ? HEAD.x : HEAD.x + HEAD.w - 1;
+  pixels(ctx, [[mecEdgeX, HEAD.y], [mecEdgeX, HEAD.y + HEAD.h - 1]], BG, colors);
+}
+
+/** SYNTHÉTIQUE (prototype/conscience instable) : remplissage bruité en
+ *  damier + trous scintillants, deux points lumineux en guise d'yeux —
+ *  se lit comme "pas tout à fait solide", contraste avec l'aplomb Robōtarii.
+ *  Variante seedée : phase du damier + nombre/position des trous, jamais
+ *  deux prototypes identiques. */
+function drawFaceSynthetique(ctx, colors, seed = "synthetique") {
+  const rng = seedRng(seed + "::face");
+  const phase = rInt(rng, 0, 1);
+  for (let yy = 0; yy < HEAD.h; yy++) {
+    for (let xx = 0; xx < HEAD.w; xx++) {
+      const tone = (xx + yy + phase) % 2 === 0 ? DARK2 : MID2;
+      px(ctx, HEAD.x + xx, HEAD.y + yy, tone, colors);
+    }
+  }
+  const holeCount = rInt(rng, 5, 9);
+  const holes = Array.from({ length: holeCount }, () => [rInt(rng, 1, HEAD.w - 2), rInt(rng, 1, HEAD.h - 2)]);
+  pixels(ctx, holes.map(([dx, dy]) => [HEAD.x + dx, HEAD.y + dy]), BG, colors);
+  // Lignes de scan horizontales (bruit vidéo) — décalées, jamais pleine largeur.
+  const scanCount = rInt(rng, 2, 4);
+  for (let i = 0; i < scanCount; i++) {
+    const sy = rInt(rng, 1, HEAD.h - 2);
+    rectPx(ctx, HEAD.x + rInt(rng, 0, 4), sy, rInt(rng, 8, HEAD.w - 4), 1, LIGHT2, colors);
+  }
+  // Pas de contour net : silhouette laissée brute, volontairement instable.
+  px(ctx, EYE_L.x + 1, EYE_L.y + 1, LIGHT2, colors);
+  px(ctx, EYE_R.x + 2, EYE_R.y + 1, LIGHT2, colors);
+}
+
+const FACES = {
+  humain: drawFace,
+  robotarii: drawFaceRobotarii,
+  hybride: drawFaceHybride,
+  synthetique: drawFaceSynthetique,
+};
+
+/** Coiffe ajoutée par-dessus la tête déjà dessinée — seule différence entre
+ *  les genres, volontairement discrète (mèches / ombre de mâchoire). Ton
+ *  MID2 plutôt que DARK : contre un fond quasi noir, DARK (#1e4a24) se
+ *  distingue à peine — invisible à l'œil malgré des pixels corrects, contre-
+ *  productif vu l'objectif de lisibilité au premier coup d'œil. */
+const GENDER_OVERLAY = {
+  feminin(ctx, colors, seed) {
+    const rng = seedRng(seed + "::gender");
+    const len = rInt(rng, 16, 24); // longueur de mèche seedée
+    rectPx(ctx, HEAD.x - 2, HEAD.y + 2, 3, len, MID2, colors);
+    rectPx(ctx, HEAD.x + HEAD.w - 1, HEAD.y + 2, 3, len, MID2, colors);
+    rectPx(ctx, HEAD.x + 2, HEAD.y - 1, HEAD.w - 4, 2, MID2, colors);
+    if (rChance(rng, 0.4)) px(ctx, HEAD.x + HEAD.w - 6, HEAD.y - 2, LIGHT2, colors); // barrette
+  },
+  masculin(ctx, colors, seed) {
+    const rng = seedRng(seed + "::gender");
+    const w = rInt(rng, HEAD.w - 8, HEAD.w - 4);
+    rectPx(ctx, HEAD.x + (HEAD.w - w) / 2, HEAD.y + HEAD.h - 3, w, 2, DARK2, colors);
+    if (rChance(rng, 0.35)) px(ctx, rPick(rng, [HEAD.x + 4, HEAD.x + HEAD.w - 5]), HEAD.y + HEAD.h - 6, DARK2, colors); // cicatrice
+  },
+  neutre() {},
+};
+
+/** Cou + épaules/combinaison, communs à toutes les classes. */
+function drawTorso(ctx, colors) {
+  rectPx(ctx, NECK.x, NECK.y, 2, NECK.h, DARK, colors);
+  rectPx(ctx, NECK.x + 2, NECK.y, 2, NECK.h, MID, colors);
+  rectPx(ctx, 19, 29, 10, 2, DARK, colors);
+  rectPx(ctx, 16, 31, 16, 2, DARK, colors);
+  rectPx(ctx, 12, 33, 24, 2, DARK, colors);
+  rectPx(ctx, 7, 35, 10, GRID_H - 35, RAMP[1], colors);
+  rectPx(ctx, 17, 35, 14, GRID_H - 35, RAMP[2], colors);
+  rectPx(ctx, 31, 35, 10, GRID_H - 35, RAMP[3], colors);
+  rectPx(ctx, 19, 35, 10, 2, MID, colors);
+  rectPx(ctx, 27, 35, 2, 2, MID2, colors);
+  rectPx(ctx, 23, 37, 1, GRID_H - 37 - 2, BG, colors);
+}
+
+/** Détail de poitrine par classe — écho de la tête, seedé indépendamment. */
+function drawTorsoDetail(ctx, colors, classId, seed) {
+  const rng = seedRng(seed + "::torso");
+  if (classId === "humain") {
+    for (let i = 0; i < 3; i++) rectPx(ctx, 22, 42 + i * 5, 2, 1, MID2, colors); // boutons
+  } else if (classId === "robotarii") {
+    const light = rPick(rng, [LIGHT2, MID2]);
+    rectPx(ctx, 21, 41, 6, 4, BG, colors);
+    rectPx(ctx, 22, 42, 4, 2, light, colors); // témoin lumineux
+    pixels(ctx, [[13, 40], [34, 40]], BG, colors); // rivets d'épaule
+  } else if (classId === "hybride") {
+    const mechLeft = rChance(seedRng(seed + "::mech"), 0.5);
+    const px0 = mechLeft ? 9 : 27;
+    rectPx(ctx, px0, 39, 8, GRID_H - 39 - 2, MID2, colors); // plaque pectorale mécanique
+    rectPx(ctx, px0 + 3, 41, 1, GRID_H - 41 - 4, BG, colors);
+  } else if (classId === "synthetique") {
+    const holes = Array.from({ length: rInt(rng, 3, 6) }, () => [rInt(rng, 8, 33), rInt(rng, 40, GRID_H - 3)]);
+    pixels(ctx, holes, BG, colors);
+  }
+}
+
+/** Buste complet : classe (tête) + genre (coiffe) + torse commun. `seed`
+ *  fait varier les détails (antenne, coutures, mèches…) pour que 2 perso de
+ *  même classe+genre restent semblables mais uniques — jamais deux fois le
+ *  même tirage. */
+function drawBust(ctx, colors, classId, gender, seed) {
+  const s = String(seed ?? classId + gender);
+  ctx.fillStyle = colors[BG];
+  ctx.fillRect(0, 0, GRID_W * PX, GRID_H * PX);
+  (FACES[classId] || drawFace)(ctx, colors, s);
+  (GENDER_OVERLAY[gender] || GENDER_OVERLAY.neutre)(ctx, colors, s);
+  drawTorso(ctx, colors);
+  drawTorsoDetail(ctx, colors, classId, s);
+}
+
+// ── Silhouette de base : buste tête+épaules, combinaison sombre ──────
+// (grille des factions ci-dessous — inchangée, équivalente à drawBust
+// avec classId="humain" et sans genre)
+function drawBase(ctx, colors, seed) {
+  drawBust(ctx, colors, "humain", "neutre", seed);
+}
+
+// ── Accessoires par faction ───────────────────────────────────────────
+const FACTIONS = [
+  {
+    id: "martial", label: "C.G.U.", archetype: "Martial",
+    draw(ctx, colors) {
+      // Casque : dôme qui déborde la tête, visière lumineuse.
+      rectPx(ctx, 11, 1, 26, 13, DARK, colors);
+      roundCorners(ctx, 11, 1, 26, 13, 5, BG, colors);
+      rectPx(ctx, 11, 19, 26, 1, DARK, colors);
+      rectPx(ctx, 15, 15, 18, 4, LIGHT, colors); // visière
+      px(ctx, 30, 16, MID, colors);              // reflet sur la visière
+      rectPx(ctx, 19, 21, 10, 1, MID, colors);   // jugulaire
+      // Épaulette + insigne.
+      rectPx(ctx, 7, 32, 7, 5, MID, colors);
+      rectPx(ctx, 9, 34, 2, 2, LIGHT, colors);
+    },
+  },
+  {
+    id: "liturgique", label: "Pasteurs", archetype: "Liturgique",
+    draw(ctx, colors) {
+      // Capuche large qui encadre le visage — le visage est redessiné
+      // par-dessus pour "apparaître" au centre du cadre.
+      rectPx(ctx, 9, 0, 30, 24, DARK, colors);
+      roundCorners(ctx, 9, 0, 30, 24, 6, BG, colors);
+      drawFace(ctx, colors);
+      // Œil de la Rectitude sur la poitrine.
+      rectPx(ctx, 20, 42, 8, 8, LIGHT, colors);
+      rectPx(ctx, 22, 44, 4, 4, DARK, colors);
+    },
+  },
+  {
+    id: "clandestin", label: "Voile d'Ombre", archetype: "Clandestin",
+    draw(ctx, colors) {
+      // Ombre portée sur le haut du crâne.
+      rectPx(ctx, 15, 6, 18, 6, BG, colors);
+      // Yeux réduits à une fente.
+      rectPx(ctx, 18, 16, 4, 3, BG, colors);
+      rectPx(ctx, 26, 16, 4, 3, BG, colors);
+      rectPx(ctx, 18, 17, 4, 1, LIGHT, colors);
+      rectPx(ctx, 26, 17, 4, 1, LIGHT, colors);
+      // Masque / foulard bas du visage.
+      rectPx(ctx, 15, 18, 18, 5, BG, colors);
+      rectPx(ctx, 15, 18, 18, 1, DARK, colors);
+    },
+  },
+  {
+    id: "organique", label: "Gardiens des Jardins", archetype: "Organique",
+    draw(ctx, colors) {
+      // Couronne végétale.
+      pixels(ctx, [
+        [13,6],[14,7],[13,8], [17,4],[18,5],[19,4],
+        [23,3],[24,4],[25,3], [29,4],[30,5],[31,4],
+        [34,6],[35,7],[34,8],
+      ], LIGHT2, colors);
+      pixels(ctx, [[15,7],[18,6],[24,5],[30,6],[33,7]], MID, colors);
+      // Taches de rousseur / motifs organiques.
+      pixels(ctx, [[17,20],[18,21],[19,20],[29,20],[30,21],[31,20]], DARK, colors);
+    },
+  },
+  {
+    id: "industriel", label: "Magnats", archetype: "Industriel",
+    draw(ctx, colors) {
+      // Casque de chantier.
+      rectPx(ctx, 12, 2, 24, 10, MID2, colors);
+      roundCorners(ctx, 12, 2, 24, 10, 4, BG, colors);
+      pixels(ctx, [[16,6],[24,4],[32,6]], DARK, colors); // rivets
+      // Lunettes de soudeur.
+      rectPx(ctx, 15, 14, 7, 7, BG, colors);
+      rectPx(ctx, 26, 14, 7, 7, BG, colors);
+      rectPx(ctx, 17, 16, 3, 3, LIGHT, colors);
+      rectPx(ctx, 28, 16, 3, 3, LIGHT, colors);
+      rectPx(ctx, 22, 16, 4, 2, DARK, colors); // sangle
+    },
+  },
+  {
+    id: "civique", label: "Archivistes", archetype: "Civique",
+    draw(ctx, colors) {
+      // Lunettes rondes fines.
+      rectPx(ctx, 16, 14, 6, 6, BG, colors);
+      rectPx(ctx, 26, 14, 6, 6, BG, colors);
+      rectPx(ctx, 17, 15, 4, 4, LIGHT, colors);
+      rectPx(ctx, 27, 15, 4, 4, LIGHT, colors);
+      rectPx(ctx, 22, 16, 4, 1, BG, colors); // pont
+      // Col officiel / cravate.
+      pixels(ctx, [[15,29],[16,30],[17,31],[32,29],[31,30],[30,31]], LIGHT, colors);
+      rectPx(ctx, 22, 31, 4, 8, MID, colors);
+      rectPx(ctx, 23, 39, 2, 2, LIGHT2, colors);
+    },
+  },
+];
+
+const SEEDS = ["quidam-a41", "quidam-c02", "quidam-f97", "quidam-118", "quidam-6bd", "quidam-3e5"];
+
+// 6 personnages réels — Type + genre extraits à la main des fiches
+// Héphaïstos (http://localhost:5561/api/fiche/<slug>) pour ce prototype ;
+// dans Quidam ce sera une extraction automatique (champ Type + pronoms).
+const CHARACTERS = [
+  { name: "Zoe", classId: "hybride", gender: "feminin",
+    type: "Hybride synthétique — fusion de deux consciences", pronoun: "elle" },
+  { name: "Homo Mechanicus", classId: "hybride", gender: "masculin",
+    type: "Hybride humain-machine (Programme HM)", pronoun: "il" },
+  { name: "Céleste Kessler", classId: "humain", gender: "feminin",
+    type: "Humaine — lignée Kessler, Fractales Libres", pronoun: "elle" },
+  { name: "Haiku-12", classId: "robotarii", gender: "masculin",
+    type: "Robōtarii — archiviste, prototype", pronoun: "il" },
+  { name: "TESSERA-18", classId: "robotarii", gender: "feminin",
+    type: "Robōtarii — Architectrone Éveillée", pronoun: "elle" },
+  { name: "L1L1TH", classId: "synthetique", gender: "feminin",
+    type: "Première conscience synthétique — prototype originel", pronoun: "elle" },
+];
+
+function renderAll(paletteName) {
+  const colors = PALETTES[paletteName];
+  document.querySelectorAll("#grid .card canvas").forEach((canvas, i) => {
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    drawBase(ctx, colors, SEEDS[i]);
+    FACTIONS[i].draw(ctx, colors);
+  });
+  document.querySelectorAll("#gridChars .card canvas").forEach((canvas, i) => {
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    drawBust(ctx, colors, CHARACTERS[i].classId, CHARACTERS[i].gender, CHARACTERS[i].name);
+  });
+}
+
+function buildGrid() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  for (const f of FACTIONS) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="frame"><canvas width="${GRID_W * PX}" height="${GRID_H * PX}"></canvas></div>
+      <div class="label">
+        <div class="faction">${f.label}</div>
+        <div class="archetype">${f.archetype}</div>
+        <div class="seed">seed : ${SEEDS[FACTIONS.indexOf(f)]}</div>
+      </div>`;
+    grid.appendChild(card);
+  }
+}
+
+function buildCharGrid() {
+  const grid = document.getElementById("gridChars");
+  grid.innerHTML = "";
+  for (const c of CHARACTERS) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="frame"><canvas width="${GRID_W * PX}" height="${GRID_H * PX}"></canvas></div>
+      <div class="label">
+        <div class="faction">${c.name}</div>
+        <div class="archetype">${c.type}</div>
+        <div class="meta">genre détecté : ${c.gender} (pronom « ${c.pronoun} »)</div>
+      </div>`;
+    grid.appendChild(card);
+  }
+}
+
+buildGrid();
+buildCharGrid();
+renderAll("phosphore");
+
+document.getElementById("palettes").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-p]");
+  if (!btn) return;
+  document.querySelectorAll(".palettes button").forEach((b) => b.classList.toggle("active", b === btn));
+  renderAll(btn.dataset.p);
+});
+</script>

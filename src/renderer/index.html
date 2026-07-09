@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quidam — ROBOTARIIS</title>
+<style>
+  :root {
+    --c0: #040804;
+    --c1: #1d3a22;
+    --c2: #4e7d43;
+    --c3: #a8d977;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--c0);
+    color: var(--c3);
+    font-family: "DejaVu Sans Mono", "Consolas", monospace;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+  header {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--c2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    letter-spacing: 2px;
+  }
+  header .title { font-weight: bold; }
+  header .title span { color: var(--c2); }
+  main { flex: 1; display: flex; min-height: 0; }
+  #sidebar {
+    width: 260px;
+    border-right: 1px solid var(--c2);
+    padding: 10px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  fieldset {
+    border: 1px solid var(--c1);
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  legend { padding: 0 6px; color: var(--c2); font-size: 11px; letter-spacing: 1px; }
+  label { display: block; margin: 6px 0 2px; font-size: 11px; color: var(--c2); }
+  input, select, button {
+    width: 100%;
+    background: var(--c0);
+    color: var(--c3);
+    border: 1px solid var(--c2);
+    font-family: inherit;
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+  button { cursor: pointer; margin-top: 4px; }
+  button:hover { background: var(--c1); }
+  button.primary { background: var(--c1); font-weight: bold; letter-spacing: 1px; }
+  button.primary:hover { background: var(--c2); color: var(--c0); }
+  .row { display: flex; gap: 4px; }
+  .row > * { flex: 1; }
+  #viewport { flex: 1; position: relative; min-width: 0; display: flex; align-items: center; justify-content: center; }
+  #viewport canvas {
+    image-rendering: pixelated;
+    border: 1px solid var(--c2);
+  }
+  #viewport.crt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px);
+  }
+  footer {
+    border-top: 1px solid var(--c2);
+    padding: 4px 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--c2);
+    gap: 12px;
+  }
+  #loreInfo b { color: var(--c3); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">QUIDAM <span>// PORTRAITS — DIRECTION CARTOGRAPHIQUE DU VIVANT</span></div>
+  </header>
+  <main>
+    <div id="sidebar">
+      <fieldset>
+        <legend>LORE</legend>
+        <label for="slug">Slug Atlas / Héphaïstos</label>
+        <input id="slug" value="zoe" spellcheck="false">
+        <button id="btnFromLore" class="primary">GÉNÉRER DEPUIS LE LORE</button>
+        <div id="loreInfo" style="margin-top:6px;font-size:10px;color:var(--c1)"></div>
+      </fieldset>
+      <fieldset>
+        <legend>MANUEL</legend>
+        <label for="seed">Seed</label>
+        <input id="seed" value="quidam-001" spellcheck="false">
+        <label for="classId">Classe</label>
+        <select id="classId">
+          <option value="humain" selected>Humain</option>
+          <option value="robotarii">Robōtarii</option>
+          <option value="hybride">Hybride</option>
+          <option value="synthetique">Synthétique</option>
+        </select>
+        <label for="gender">Genre</label>
+        <select id="gender">
+          <option value="neutre" selected>Neutre</option>
+          <option value="feminin">Féminin</option>
+          <option value="masculin">Masculin</option>
+        </select>
+        <label for="factionStyle">Accessoire de faction</label>
+        <select id="factionStyle">
+          <option value="" selected>Aucun</option>
+          <option value="martial">C.G.U. — Martial</option>
+          <option value="liturgique">Pasteurs — Liturgique</option>
+          <option value="clandestin">Voile d'Ombre — Clandestin</option>
+          <option value="organique">Gardiens des Jardins — Organique</option>
+          <option value="industriel">Magnats — Industriel</option>
+          <option value="civique">Archivistes — Civique</option>
+          <option value="dark-umbrae">Division Dark Umbrae</option>
+        </select>
+        <button id="btnGenerate" class="primary">GÉNÉRER</button>
+      </fieldset>
+      <fieldset>
+        <legend>AFFICHAGE</legend>
+        <label for="palette">Palette</label>
+        <select id="palette">
+          <option value="phosphore" selected>Phosphore</option>
+          <option value="sepia">Sépia</option>
+          <option value="blueprint">Blueprint</option>
+        </select>
+        <button id="btnCrt">CRT : ON</button>
+      </fieldset>
+      <fieldset>
+        <legend>EXPORT</legend>
+        <button id="btnPng">PNG</button>
+      </fieldset>
+    </div>
+    <div id="viewport" class="crt">
+      <canvas id="view"></canvas>
+    </div>
+  </main>
+  <footer>
+    <div id="status">—</div>
+  </footer>
+  <script src="renderer.js"></script>
+</body>
+</html>

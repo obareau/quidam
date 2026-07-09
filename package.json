@@ -1,0 +1,27 @@
+{
+  "name": "quidam",
+  "version": "0.1.0",
+  "description": "Générateur de portraits pixel-art 8-bit des personnages de l'univers ROBOTARIIS — silhouette de base + accessoires greffés, ancré sur le lore (Atlas + Héphaïstos).",
+  "author": "Olivier Bareau",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc --noEmit && tsx build.ts",
+    "generate": "tsx src/cli/generate.ts",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.53"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.5.0",
+    "esbuild": "^0.24.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "homepage": "https://obareau.github.io/quidam/"
+}
