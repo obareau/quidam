@@ -11,6 +11,7 @@
 import * as http from "node:http";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { ZipArchive } from "archiver";
 import { listTargets, generatePortrait, fileExists } from "../core/pipeline";
 import type { PaletteName } from "../shared/types";
 
@@ -77,6 +78,7 @@ const PAGE = `<!DOCTYPE html>
       </select>
       <button id="btnRefresh">RAFRAÎCHIR</button>
       <button id="btnMissing" class="primary">GÉNÉRER LES MANQUANTS</button>
+      <button id="btnZip">TÉLÉCHARGER TOUT (.zip)</button>
     </div>
   </header>
   <table>
@@ -146,6 +148,10 @@ document.getElementById("btnMissing").addEventListener("click", async () => {
   await renderTable();
 });
 
+document.getElementById("btnZip").addEventListener("click", () => {
+  window.location.href = "/api/export-zip";
+});
+
 renderTable();
 </script>
 </body>
@@ -196,6 +202,24 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       sendJson(res, 500, { status: "error", message: (err as Error).message });
     }
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/export-zip") {
+    if (!fs.existsSync(OUT_DIR)) {
+      res.writeHead(404);
+      res.end("Aucun portrait généré pour l'instant.");
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="quidam-portraits.zip"`,
+    });
+    const archive = new ZipArchive({ zlib: { level: 9 } });
+    archive.on("error", (err: Error) => res.destroy(err));
+    archive.pipe(res);
+    archive.directory(OUT_DIR, false);
+    void archive.finalize();
     return;
   }
 

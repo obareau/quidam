@@ -13,9 +13,11 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.53"
+    "@napi-rs/canvas": "^0.1.53",
+    "archiver": "^8.0.0"
   },
   "devDependencies": {
+    "@types/archiver": "^8.0.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^22.5.0",
     "esbuild": "^0.24.0",
